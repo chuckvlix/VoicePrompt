@@ -125,7 +125,9 @@ export const TranscriptionEditor: React.FC<TranscriptionEditorProps> = ({
               </>
             ) : (
               <>
-                <Sparkles size={17} aria-hidden="true" />
+                <span className="btn-improve-icon" aria-hidden="true">
+                  <Sparkles size={14} />
+                </span>
                 <span>Mejorar redacción</span>
               </>
             )}

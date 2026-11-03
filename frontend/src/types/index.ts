@@ -30,7 +30,7 @@ export const TONE_DEFINITIONS: Record<ToneOption, ToneDefinition> = {
     id: 'email',
     label: 'Correo',
     description: 'Formato email con asunto, saludo y despedida',
-    badgeColor: '#52525b',
+    badgeColor: '#404047',
   },
   prompt: {
     id: 'prompt',

@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import {
   Clock,
   Copy,
+  FileText,
   History,
   RotateCcw,
   Search,
@@ -88,8 +89,17 @@ export const HistoryList: React.FC<HistoryListProps> = ({
   }
 
   const handleBackdropClick = (e: React.MouseEvent<HTMLDialogElement>) => {
-    if (e.target === dialogRef.current) {
-      onClose()
+    if (e.target === dialogRef.current && dialogRef.current) {
+      const rect = dialogRef.current.getBoundingClientRect()
+      const isInside = (
+        rect.top <= e.clientY &&
+        e.clientY <= rect.top + rect.height &&
+        rect.left <= e.clientX &&
+        e.clientX <= rect.left + rect.width
+      )
+      if (!isInside) {
+        onClose()
+      }
     }
   }
 
@@ -163,13 +173,18 @@ export const HistoryList: React.FC<HistoryListProps> = ({
                   <li key={item.id} className="history-card-item">
                     <div className="history-card-top">
                       <div className="history-card-meta">
-                        <span className="history-tone-badge">
-                          {toneLabel}
-                        </span>
-                        <span className="history-date">
-                          <Clock size={12} aria-hidden="true" />
-                          <span>{formatDate(item.created_at)}</span>
-                        </span>
+                        <div className="history-file-icon-badge" aria-hidden="true">
+                          <FileText size={16} />
+                        </div>
+                        <div className="history-meta-text">
+                          <span className="history-tone-badge">
+                            {toneLabel}
+                          </span>
+                          <span className="history-date">
+                            <Clock size={12} aria-hidden="true" />
+                            <span>{formatDate(item.created_at)}</span>
+                          </span>
+                        </div>
                       </div>
                       <div className="history-card-actions">
                         <button

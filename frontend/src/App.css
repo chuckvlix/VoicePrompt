@@ -25,6 +25,10 @@
     border-radius: var(--radius-lg);
     min-height: calc(100vh - 1rem);
   }
+
+  .brand-title {
+    font-size: 1.75rem;
+  }
 }
 
 /* ==========================================================================
@@ -70,8 +74,8 @@
   position: absolute;
   top: 7px;
   right: 7px;
-  color: #fef08a;
-  opacity: 0.95;
+  color: #ffffff;
+  opacity: 0.9;
 }
 
 .brand-title {
@@ -174,10 +178,22 @@
   align-items: center;
   gap: 0.85rem;
   background: var(--bg-card-light);
-  padding: 1.35rem 2rem;
-  border-radius: var(--radius-lg);
+  padding: 1.15rem 2.25rem;
+  border-radius: var(--radius-full);
   border: 1px solid var(--border-light);
   box-shadow: var(--shadow-card);
+  transition: all 0.25s ease;
+}
+
+.audio-recorder-container:has(.audio-recorder-error) {
+  border-radius: var(--radius-xl);
+}
+
+@media (max-width: 768px) {
+  .audio-recorder-container {
+    padding: 1.25rem 1.25rem;
+    border-radius: var(--radius-lg);
+  }
 }
 
 .audio-recorder-error {
@@ -533,19 +549,25 @@
 }
 
 .tone-pills {
-  display: flex;
+  display: inline-flex;
   flex-wrap: wrap;
-  gap: 0.45rem;
+  gap: 0.35rem;
+  background-color: var(--bg-card-subtle);
+  padding: 0.35rem;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-light);
+  width: fit-content;
+  max-width: 100%;
 }
 
 .tone-pill {
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
-  padding: 0.45rem 0.95rem;
+  padding: 0.4rem 0.85rem;
   border-radius: var(--radius-full);
-  background-color: var(--bg-card-subtle);
-  border: 1px solid var(--border-light);
+  background-color: transparent;
+  border: 1px solid transparent;
   font-size: 0.8rem;
   font-weight: 600;
   color: var(--text-secondary);
@@ -554,7 +576,7 @@
 
 .tone-pill:hover:not(:disabled) {
   color: var(--text-primary);
-  background-color: var(--bg-card-hover);
+  background-color: rgba(255, 255, 255, 0.7);
 }
 
 .tone-pill.active {
@@ -703,6 +725,23 @@
   transform: translateY(0);
 }
 
+.btn-improve {
+  padding-left: 1.15rem;
+  padding-right: 1.65rem;
+}
+
+.btn-improve-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+  margin-right: 0.15rem;
+}
+
 /* Secondary Button on Dark Card: Crisp White Pill */
 .improved-card .btn-secondary {
   background: #ffffff;
@@ -818,17 +857,18 @@ dialog.history-modal::backdrop {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: var(--bg-card-subtle);
+  background: var(--bg-card-dark);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--text-secondary);
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(13, 13, 15, 0.15);
   transition: all 0.15s ease;
 }
 
 .history-close-btn:hover {
-  background: var(--bg-card-hover);
-  color: var(--text-primary);
+  background: var(--accent-black-hover);
+  transform: scale(1.05);
 }
 
 .history-search-bar {
@@ -927,7 +967,27 @@ dialog.history-modal::backdrop {
 .history-card-meta {
   display: flex;
   align-items: center;
+  gap: 0.85rem;
+}
+
+.history-file-icon-badge {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background-color: var(--bg-card-dark);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(13, 13, 15, 0.18);
+}
+
+.history-meta-text {
+  display: flex;
+  align-items: center;
   gap: 0.65rem;
+  flex-wrap: wrap;
 }
 
 .history-tone-badge {
@@ -1080,7 +1140,7 @@ dialog.history-modal::backdrop {
 }
 
 .toast-info .toast-icon {
-  color: #93c5fd;
+  color: var(--text-on-dark-muted);
 }
 
 .toast-content {
