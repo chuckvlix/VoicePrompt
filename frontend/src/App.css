@@ -373,16 +373,16 @@
 }
 
 /* ==========================================================================
-   Stage 1 — Transcription Card (Crisp White Floating Surface)
+   Dual-Stage Workspace Cards (Unified Crisp White Floating Surfaces)
    ========================================================================== */
-.editor-card:not(.improved-card) {
+.editor-card {
   background-color: var(--bg-card-light);
   border: 1px solid var(--border-light);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-card);
 }
 
-.editor-card:not(.improved-card):focus-within {
+.editor-card:focus-within {
   border-color: rgba(13, 13, 15, 0.2);
   box-shadow: 0 16px 36px rgba(15, 15, 20, 0.08);
 }
@@ -597,61 +597,18 @@
 }
 
 /* ==========================================================================
-   Stage 2 — Signature Obsidian Black Hero Card
+   Stage 2 — Improved Card (Unified Crisp White with Subtle Tone Pill)
    ========================================================================== */
 .improved-card {
-  background-color: var(--bg-card-dark);
-  color: var(--text-on-dark);
-  color-scheme: dark;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-card-dark);
-}
-
-.improved-card:focus-within {
-  border-color: rgba(255, 255, 255, 0.22);
-}
-
-.improved-card .card-header {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  background-color: transparent;
-}
-
-.improved-card .card-title {
-  color: #ffffff;
+  position: relative;
 }
 
 .improved-card .tone-active-badge {
-  background: rgba(255, 255, 255, 0.14);
+  background: var(--bg-card-dark);
   color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.22);
+  border: 1px solid var(--bg-card-dark);
   font-weight: 700;
-}
-
-.improved-card .card-badge:not(.tone-active-badge) {
-  background: rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.5);
-  border-color: rgba(255, 255, 255, 0.1);
-}
-
-.improved-card .btn-icon {
-  background-color: rgba(255, 255, 255, 0.1);
-  color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-}
-
-.improved-card .btn-icon:hover:not(:disabled) {
-  background-color: rgba(255, 255, 255, 0.18);
-  color: #ffffff;
-}
-
-.improved-card .text-input {
-  color: #ffffff;
-  caret-color: #ffffff;
-}
-
-.improved-card .text-input::placeholder {
-  color: rgba(255, 255, 255, 0.35);
+  box-shadow: 0 2px 8px rgba(13, 13, 15, 0.14);
 }
 
 .improved-card .improving-placeholder {
@@ -661,18 +618,15 @@
   align-items: center;
   justify-content: center;
   gap: 1.1rem;
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--text-secondary);
   text-align: center;
   padding: 2rem;
 }
 
-.improved-card .editor-footer {
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  background-color: rgba(255, 255, 255, 0.02);
-}
-
-.improved-card .editor-stats {
-  color: var(--text-on-dark-muted);
+.improved-card .improving-placeholder p {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text-secondary);
 }
 
 .improved-card .diff-badge {
@@ -681,9 +635,9 @@
   font-weight: 600;
   padding: 0.15rem 0.55rem;
   border-radius: var(--radius-full);
-  background-color: rgba(255, 255, 255, 0.12);
-  color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  background-color: var(--bg-card-subtle);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-light);
 }
 
 /* ==========================================================================
@@ -742,17 +696,17 @@
   margin-right: 0.15rem;
 }
 
-/* Secondary Button on Dark Card: Crisp White Pill */
-.improved-card .btn-secondary {
-  background: #ffffff;
-  color: #0d0d0f;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+/* Primary Action on Improved Card: Solid Obsidian Pill matching Stage 1 CTA */
+.improved-card .btn-save:not(.btn-success) {
+  background: var(--bg-card-dark);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(13, 13, 15, 0.16);
 }
 
-.improved-card .btn-secondary:hover:not(:disabled) {
-  background: #f3f4f6;
+.improved-card .btn-save:not(.btn-success):hover:not(:disabled) {
+  background: var(--accent-black-hover);
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 6px 20px rgba(13, 13, 15, 0.22);
 }
 
 /* Default btn-secondary (fallback) */

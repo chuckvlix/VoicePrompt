@@ -136,7 +136,9 @@ export const ImprovedEditor: React.FC<ImprovedEditorProps> = ({
               </>
             ) : (
               <>
-                <Bookmark size={17} aria-hidden="true" />
+                <span className="btn-improve-icon">
+                  <Bookmark size={15} aria-hidden="true" />
+                </span>
                 <span>Guardar en historial</span>
               </>
             )}
