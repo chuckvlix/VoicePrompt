@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import os
 import tempfile
@@ -12,32 +13,44 @@ router = APIRouter(prefix="/transcribe", tags=["Transcription"])
 
 
 def get_file_extension(filename: str | None, content_type: str | None) -> str:
-    if filename and "." in filename:
-        return f".{filename.rsplit('.', 1)[-1].lower()}"
+    type_map = {
+        "audio/webm": ".webm",
+        "video/webm": ".webm",
+        "audio/wav": ".wav",
+        "audio/x-wav": ".wav",
+        "audio/wave": ".wav",
+        "audio/mp3": ".mp3",
+        "audio/mpeg": ".mp3",
+        "audio/ogg": ".ogg",
+        "audio/flac": ".flac",
+        "audio/x-flac": ".flac",
+        "audio/mp4": ".m4a",
+        "audio/m4a": ".m4a",
+        "audio/x-m4a": ".m4a",
+        "audio/aac": ".aac",
+    }
     if content_type:
-        type_map = {
-            "audio/webm": ".webm",
-            "audio/wav": ".wav",
-            "audio/x-wav": ".wav",
-            "audio/mp3": ".mp3",
-            "audio/mpeg": ".mp3",
-            "audio/ogg": ".ogg",
-            "audio/flac": ".flac",
-            "audio/mp4": ".m4a",
-            "audio/m4a": ".m4a",
-            "video/webm": ".webm",
-        }
+        clean_type = content_type.split(";")[0].strip().lower()
+        if clean_type in type_map:
+            return type_map[clean_type]
         for mime, ext in type_map.items():
-            if mime in content_type:
+            if mime in clean_type:
                 return ext
+
+    if filename and "." in filename:
+        ext = f".{filename.rsplit('.', 1)[-1].lower()}"
+        valid_extensions = {".webm", ".wav", ".mp3", ".ogg", ".flac", ".m4a", ".mp4", ".aac"}
+        if ext in valid_extensions:
+            return ext
+
     return ".webm"
 
 
 @router.post("", response_model=TranscriptionResponse)
 async def transcribe_audio(file: UploadFile = File(...)) -> TranscriptionResponse:
     """
-    Accept an uploaded audio blob, save temporarily, run faster-whisper (Spanish, VAD enabled),
-    and return the transcribed text and audio duration.
+    Accept an uploaded audio blob, save temporarily, run faster-whisper (Spanish, VAD enabled)
+    in a background thread pool, and return the transcribed text and audio duration.
     """
     if not file:
         raise HTTPException(status_code=400, detail="No se proporcionó ningún archivo de audio.")
@@ -57,7 +70,8 @@ async def transcribe_audio(file: UploadFile = File(...)) -> TranscriptionRespons
         with open(temp_path, "wb") as f:
             f.write(content)
 
-        text, duration = transcription_service.transcribe(temp_path)
+        # Offload CPU/inference-bound Whisper transcription to worker thread
+        text, duration = await asyncio.to_thread(transcription_service.transcribe, temp_path)
         return TranscriptionResponse(text=text, duration=duration)
 
     except HTTPException:

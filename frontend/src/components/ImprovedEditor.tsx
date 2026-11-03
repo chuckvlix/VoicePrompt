@@ -2,13 +2,14 @@ import React, { useState } from 'react'
 import { Bookmark, Check, Copy, Sparkles } from 'lucide-react'
 import type { ToneOption } from '../types'
 import { TONE_DEFINITIONS } from '../types'
+import { copyToClipboard } from '../utils/clipboard'
 
 interface ImprovedEditorProps {
   improvedText: string
   onChangeText: (newText: string) => void
   appliedTone: ToneOption | null
   originalText: string
-  onSave: () => Promise<void>
+  onSave: () => Promise<boolean>
   isSaving: boolean
   isImproving: boolean
 }
@@ -27,20 +28,20 @@ export const ImprovedEditor: React.FC<ImprovedEditorProps> = ({
 
   const handleCopy = async () => {
     if (!improvedText) return
-    try {
-      await navigator.clipboard.writeText(improvedText)
+    const success = await copyToClipboard(improvedText)
+    if (success) {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
-    } catch {
-      // Fallback
     }
   }
 
   const handleSave = async () => {
     if (!improvedText.trim() || !originalText.trim() || isSaving) return
-    await onSave()
-    setSavedSuccess(true)
-    setTimeout(() => setSavedSuccess(false), 2500)
+    const success = await onSave()
+    if (success) {
+      setSavedSuccess(true)
+      setTimeout(() => setSavedSuccess(false), 2500)
+    }
   }
 
   const toneDef = appliedTone ? TONE_DEFINITIONS[appliedTone] : null

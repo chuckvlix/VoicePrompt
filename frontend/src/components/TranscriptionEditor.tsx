@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { Check, Clock, Copy, Sparkles, Trash2 } from 'lucide-react'
 import type { ToneOption } from '../types'
 import { ToneSelector } from './ToneSelector'
+import { copyToClipboard } from '../utils/clipboard'
 
 interface TranscriptionEditorProps {
   text: string
@@ -26,12 +27,10 @@ export const TranscriptionEditor: React.FC<TranscriptionEditorProps> = ({
 
   const handleCopy = async () => {
     if (!text) return
-    try {
-      await navigator.clipboard.writeText(text)
+    const success = await copyToClipboard(text)
+    if (success) {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
-    } catch {
-      // Fallback
     }
   }
 

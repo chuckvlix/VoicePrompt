@@ -37,8 +37,17 @@ export async function checkBackendHealth(): Promise<boolean> {
 
 export async function transcribeAudio(audioBlob: Blob): Promise<TranscriptionResponse> {
   const formData = new FormData()
-  // Provide file extension hint based on blob type
-  const extension = audioBlob.type.includes('wav') ? 'wav' : 'webm'
+  let extension = 'webm'
+  const type = audioBlob.type.toLowerCase()
+  if (type.includes('wav')) {
+    extension = 'wav'
+  } else if (type.includes('mp4') || type.includes('m4a') || type.includes('aac')) {
+    extension = 'm4a'
+  } else if (type.includes('ogg') || type.includes('opus')) {
+    extension = 'ogg'
+  } else if (type.includes('mp3') || type.includes('mpeg')) {
+    extension = 'mp3'
+  }
   formData.append('file', audioBlob, `recording.${extension}`)
 
   const res = await fetch(`${BASE_URL}/api/transcribe`, {

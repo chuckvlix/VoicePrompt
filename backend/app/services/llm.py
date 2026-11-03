@@ -1,4 +1,5 @@
 import logging
+import re
 import httpx
 from fastapi import HTTPException
 from app.config import settings
@@ -38,6 +39,30 @@ BASE_SYSTEM_INSTRUCTION = (
 )
 
 
+def clean_llm_response(text: str) -> str:
+    """
+    Sanitize and clean raw LLM output:
+    - Strip <think>...</think> and <thought>...</thought> reasoning blocks.
+    - Strip wrapping markdown code fences if present.
+    - Strip enclosing quotation marks.
+    """
+    # Remove thinking tags from reasoning models
+    text = re.sub(r"<think>[\s\S]*?</think>", "", text, flags=re.IGNORECASE)
+    text = re.sub(r"<thought>[\s\S]*?</thought>", "", text, flags=re.IGNORECASE)
+    text = text.strip()
+
+    # Strip full markdown code fences (e.g. ```markdown ... ``` or ```text ... ```)
+    match = re.match(r"^```(?:[a-zA-Z0-9_-]+)?\s*\n([\s\S]*?)\n```$", text)
+    if match:
+        text = match.group(1).strip()
+
+    # Strip enclosing quotation marks if wrapped completely
+    if (text.startswith('"') and text.endswith('"')) or (text.startswith('«') and text.endswith('»')):
+        text = text[1:-1].strip()
+
+    return text
+
+
 class LLMService:
     def __init__(self, base_url: str | None = None, model: str | None = None) -> None:
         self.base_url = (base_url or settings.lm_studio_base_url).rstrip("/")
@@ -47,6 +72,25 @@ class LLMService:
         tone_instruction = TONE_PROMPTS.get(tone, TONE_PROMPTS["neutral"])
         return f"{BASE_SYSTEM_INSTRUCTION}\n\nInstrucción de estilo ({tone}):\n{tone_instruction}"
 
+    async def get_active_model(self, client: httpx.AsyncClient) -> str:
+        """
+        Dynamically discover the active loaded model in LM Studio if the default placeholder is used.
+        """
+        if self.model and self.model != "local-model":
+            return self.model
+        try:
+            res = await client.get(f"{self.base_url}/models", timeout=3.0)
+            if res.status_code == 200:
+                data = res.json()
+                models = data.get("data", [])
+                if models and isinstance(models, list) and len(models) > 0:
+                    model_id = models[0].get("id")
+                    if model_id:
+                        return str(model_id)
+        except Exception as exc:
+            logger.debug("Could not auto-discover active model from LM Studio /models: %s", exc)
+        return self.model or "local-model"
+
     async def improve_text(self, text: str, tone: ToneType) -> str:
         """
         Call LM Studio local inference server /chat/completions to improve the given text.
@@ -54,18 +98,20 @@ class LLMService:
         endpoint = f"{self.base_url}/chat/completions"
         system_content = self.build_system_prompt(tone)
 
-        payload = {
-            "model": self.model,
-            "messages": [
-                {"role": "system", "content": system_content},
-                {"role": "user", "content": text},
-            ],
-            "temperature": 0.3,
-            "stream": False,
-        }
-
         try:
             async with httpx.AsyncClient(timeout=60.0) as client:
+                model_to_use = await self.get_active_model(client)
+
+                payload = {
+                    "model": model_to_use,
+                    "messages": [
+                        {"role": "system", "content": system_content},
+                        {"role": "user", "content": text},
+                    ],
+                    "temperature": 0.3,
+                    "stream": False,
+                }
+
                 response = await client.post(endpoint, json=payload)
                 response.raise_for_status()
                 data = response.json()
@@ -77,11 +123,13 @@ class LLMService:
                     detail="LM Studio no devolvió ninguna opción de respuesta válida.",
                 )
 
-            improved_text = choices[0].get("message", {}).get("content", "").strip()
+            raw_text = choices[0].get("message", {}).get("content", "").strip()
+            improved_text = clean_llm_response(raw_text)
+
             if not improved_text:
                 raise HTTPException(
                     status_code=502,
-                    detail="LM Studio devolvió una respuesta vacía.",
+                    detail="LM Studio devolvió una respuesta vacía tras procesar el texto.",
                 )
 
             return improved_text

@@ -133,11 +133,15 @@ export function useAudioRecorder(): AudioRecorderState {
 
   const cancelRecording = useCallback(() => {
     const recorder = mediaRecorderRef.current
-    if (recorder && recorder.state !== 'inactive') {
-      try {
-        recorder.stop()
-      } catch {
-        // ignore
+    if (recorder) {
+      recorder.onstop = null
+      recorder.ondataavailable = null
+      if (recorder.state !== 'inactive') {
+        try {
+          recorder.stop()
+        } catch {
+          // ignore
+        }
       }
     }
     chunksRef.current = []

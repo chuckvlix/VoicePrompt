@@ -21,6 +21,8 @@ def test_history_crud_lifecycle(client: TestClient):
     assert created_item["improved_text"] == payload["improved_text"]
     assert created_item["tone"] == "formal"
     assert "created_at" in created_item
+    assert "T" in created_item["created_at"]
+    assert created_item["created_at"].endswith("Z")
     item_id = created_item["id"]
 
     # 3. Create second item to verify ordering (most recent first)
@@ -37,6 +39,7 @@ def test_history_crud_lifecycle(client: TestClient):
     assert len(items) == 2
     assert items[0]["original_text"] == "Segunda idea"
     assert items[1]["original_text"] == "Texto original dictado por voz"
+    assert "T" in items[0]["created_at"] and items[0]["created_at"].endswith("Z")
 
     # 4. Delete first item
     delete_resp = client.delete(f"/api/history/{item_id}")
@@ -61,6 +64,13 @@ def test_history_crud_lifecycle(client: TestClient):
 def test_history_create_validation(client: TestClient):
     # Empty texts should fail validation
     res = client.post("/api/history", json={"original_text": "", "improved_text": "", "tone": "neutral"})
+    assert res.status_code == 422
+
+    # Whitespace-only texts should fail validation
+    res = client.post("/api/history", json={"original_text": "   ", "improved_text": "ok", "tone": "neutral"})
+    assert res.status_code == 422
+
+    res = client.post("/api/history", json={"original_text": "ok", "improved_text": "   ", "tone": "neutral"})
     assert res.status_code == 422
 
     # Invalid tone should fail validation

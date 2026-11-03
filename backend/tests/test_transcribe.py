@@ -9,6 +9,11 @@ def test_get_file_extension():
     assert get_file_extension("audio.wav", None) == ".wav"
     assert get_file_extension("audio.WebM", None) == ".webm"
     assert get_file_extension(None, "audio/webm") == ".webm"
+    assert get_file_extension(None, "audio/webm;codecs=opus") == ".webm"
+    assert get_file_extension(None, "audio/mp4;codecs=mp4a.40.2") == ".m4a"
+    assert get_file_extension(None, "audio/m4a") == ".m4a"
+    assert get_file_extension(None, "audio/aac") == ".aac"
+    assert get_file_extension(None, "audio/flac") == ".flac"
     assert get_file_extension(None, "audio/wav") == ".wav"
     assert get_file_extension(None, "audio/mp3") == ".mp3"
     assert get_file_extension(None, "audio/ogg") == ".ogg"
@@ -47,11 +52,30 @@ def test_transcribe_exception_cleanup(client: TestClient):
     with patch("app.routers.transcribe.transcription_service.transcribe") as mock_transcribe:
         mock_transcribe.side_effect = RuntimeError("Failed model processing")
 
-        files = {"file": ("error.webm", io.BytesIO(b"some audio bytes"), "audio/webm")}
+def test_transcribe_safari_mp4_format(client: TestClient):
+    with patch("app.routers.transcribe.transcription_service.transcribe") as mock_transcribe:
+        mock_transcribe.return_value = ("Audio desde Safari en MP4", 1.8)
+
+        fake_audio_bytes = b"fake mp4 audio content"
+        files = {"file": ("recording.mp4", io.BytesIO(fake_audio_bytes), "audio/mp4;codecs=mp4a.40.2")}
+
         res = client.post("/api/transcribe", files=files)
-        assert res.status_code == 500
-        assert "Error durante el procesamiento" in res.json()["detail"]
+        assert res.status_code == 200
+        data = res.json()
+        assert data["text"] == "Audio desde Safari en MP4"
+        assert data["duration"] == 1.8
 
         called_path = mock_transcribe.call_args[0][0]
-        # Verify file cleaned up despite exception
-        assert not called_path.exists()
+        # Suffix must be .m4a based on audio/mp4 mapping
+        assert str(called_path).endswith(".m4a")
+
+
+def test_transcribe_thread_offload(client: TestClient):
+    with patch("asyncio.to_thread") as mock_to_thread:
+        mock_to_thread.return_value = ("Texto transcrito vía hilo", 2.0)
+
+        files = {"file": ("audio.wav", io.BytesIO(b"dummy wav data"), "audio/wav")}
+        res = client.post("/api/transcribe", files=files)
+        assert res.status_code == 200
+        assert res.json()["text"] == "Texto transcrito vía hilo"
+        mock_to_thread.assert_called_once()

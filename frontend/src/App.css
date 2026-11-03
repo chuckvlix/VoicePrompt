@@ -604,19 +604,7 @@
 }
 
 /* History Modal */
-.history-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background-color: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(4px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 100;
-  padding: 1.5rem;
-}
-
-.history-modal {
+dialog.history-modal {
   width: 100%;
   max-width: 860px;
   max-height: 85vh;
@@ -624,8 +612,26 @@
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
+  padding: 0;
+  margin: auto;
+  color: var(--text-primary);
+}
+
+dialog.history-modal:modal {
+  overscroll-behavior: contain;
+}
+
+dialog.history-modal::backdrop {
+  overflow: hidden;
+  overscroll-behavior: contain;
+  background-color: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+}
+
+.history-modal-inner {
   display: flex;
   flex-direction: column;
+  max-height: 85vh;
   overflow: hidden;
 }
 

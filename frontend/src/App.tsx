@@ -16,6 +16,7 @@ import {
 } from './services/api'
 import type { HistoryItem, ToneOption } from './types'
 import { History, Mic, Sparkles } from 'lucide-react'
+import { copyToClipboard } from './utils/clipboard'
 import './App.css'
 
 export function App() {
@@ -103,8 +104,8 @@ export function App() {
   }
 
   // Handle saving to SQLite history
-  const handleSaveToHistory = async () => {
-    if (!originalText.trim() || !improvedText.trim()) return
+  const handleSaveToHistory = async (): Promise<boolean> => {
+    if (!originalText.trim() || !improvedText.trim()) return false
 
     setIsSaving(true)
     try {
@@ -115,9 +116,11 @@ export function App() {
       })
       setHistoryItems((prev) => [newItem, ...prev])
       addToast('Guardado permanentemente en la base de datos SQLite', 'success')
+      return true
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Error al guardar en el historial.'
       addToast(msg, 'error')
+      return false
     } finally {
       setIsSaving(false)
     }
@@ -148,10 +151,10 @@ export function App() {
   }
 
   const handleCopyText = async (text: string) => {
-    try {
-      await navigator.clipboard.writeText(text)
+    const success = await copyToClipboard(text)
+    if (success) {
       addToast('Texto copiado al portapapeles', 'success')
-    } catch {
+    } else {
       addToast('No se pudo acceder al portapapeles', 'error')
     }
   }

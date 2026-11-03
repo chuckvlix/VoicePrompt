@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import {
   Clock,
   Copy,
@@ -22,7 +22,10 @@ interface HistoryListProps {
 
 function formatDate(dateStr: string): string {
   try {
-    const date = new Date(dateStr)
+    const normalized = dateStr.includes('T')
+      ? (dateStr.endsWith('Z') || dateStr.includes('+') ? dateStr : `${dateStr}Z`)
+      : `${dateStr.replace(' ', 'T')}Z`
+    const date = new Date(normalized)
     if (isNaN(date.getTime())) {
       return dateStr
     }
@@ -46,10 +49,24 @@ export const HistoryList: React.FC<HistoryListProps> = ({
   onDelete,
   onCopyText,
 }) => {
+  const dialogRef = useRef<HTMLDialogElement | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [deletingId, setDeletingId] = useState<number | null>(null)
 
-  if (!isOpen) return null
+  useEffect(() => {
+    const dialog = dialogRef.current
+    if (!dialog) return
+
+    if (isOpen) {
+      if (!dialog.open) {
+        dialog.showModal()
+      }
+    } else {
+      if (dialog.open) {
+        dialog.close()
+      }
+    }
+  }, [isOpen])
 
   const filteredItems = items.filter((item) => {
     if (!searchQuery.trim()) return true
@@ -70,9 +87,25 @@ export const HistoryList: React.FC<HistoryListProps> = ({
     }
   }
 
+  const handleBackdropClick = (e: React.MouseEvent<HTMLDialogElement>) => {
+    if (e.target === dialogRef.current) {
+      onClose()
+    }
+  }
+
   return (
-    <div className="history-modal-backdrop" onClick={onClose} role="dialog" aria-modal="true" aria-labelledby="history-modal-title">
-      <div className="history-modal" onClick={(e) => e.stopPropagation()}>
+    <dialog
+      ref={dialogRef}
+      className="history-modal"
+      aria-labelledby="history-modal-title"
+      onClick={handleBackdropClick}
+      onCancel={(e) => {
+        e.preventDefault()
+        onClose()
+      }}
+      {...({ closedby: 'any' } as any)}
+    >
+      <div className="history-modal-inner" onClick={(e) => e.stopPropagation()}>
         <div className="history-header">
           <div className="history-title-group">
             <History size={20} aria-hidden="true" />
@@ -198,6 +231,6 @@ export const HistoryList: React.FC<HistoryListProps> = ({
           )}
         </div>
       </div>
-    </div>
+    </dialog>
   )
 }

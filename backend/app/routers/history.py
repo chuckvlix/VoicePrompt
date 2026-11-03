@@ -8,6 +8,15 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/history", tags=["History"])
 
 
+def format_created_at(val: str | None) -> str:
+    if not val:
+        return ""
+    s = str(val).strip()
+    if "T" in s:
+        return s if (s.endswith("Z") or "+" in s) else f"{s}Z"
+    return f"{s.replace(' ', 'T')}Z"
+
+
 @router.get("", response_model=list[HistoryItemResponse])
 def get_history() -> list[HistoryItemResponse]:
     """
@@ -28,7 +37,7 @@ def get_history() -> list[HistoryItemResponse]:
                 original_text=row["original_text"],
                 improved_text=row["improved_text"],
                 tone=row["tone"],
-                created_at=str(row["created_at"]),
+                created_at=format_created_at(row["created_at"]),
             )
             for row in rows
         ]
@@ -71,7 +80,7 @@ def create_history_item(payload: HistoryCreateRequest) -> HistoryItemResponse:
             original_text=row["original_text"],
             improved_text=row["improved_text"],
             tone=row["tone"],
-            created_at=str(row["created_at"]),
+            created_at=format_created_at(row["created_at"]),
         )
 
 
