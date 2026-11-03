@@ -163,13 +163,7 @@ export const HistoryList: React.FC<HistoryListProps> = ({
                   <li key={item.id} className="history-card-item">
                     <div className="history-card-top">
                       <div className="history-card-meta">
-                        <span
-                          className="history-tone-badge"
-                          style={{
-                            backgroundColor: toneDef ? `${toneDef.badgeColor}22` : '#3b82f622',
-                            color: toneDef ? toneDef.badgeColor : '#3b82f6',
-                          }}
-                        >
+                        <span className="history-tone-badge">
                           {toneLabel}
                         </span>
                         <span className="history-date">

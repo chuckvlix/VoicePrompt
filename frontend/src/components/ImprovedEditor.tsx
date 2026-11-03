@@ -59,10 +59,7 @@ export const ImprovedEditor: React.FC<ImprovedEditorProps> = ({
             2. Versión mejorada
           </label>
           {toneDef ? (
-            <span
-              className="card-badge tone-active-badge"
-              style={{ backgroundColor: `${toneDef.badgeColor}22`, color: toneDef.badgeColor, borderColor: `${toneDef.badgeColor}44` }}
-            >
+            <span className="card-badge tone-active-badge">
               {toneDef.label}
             </span>
           ) : (

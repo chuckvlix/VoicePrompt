@@ -12,31 +12,31 @@ export const TONE_DEFINITIONS: Record<ToneOption, ToneDefinition> = {
     id: 'neutral',
     label: 'Estándar',
     description: 'Natural, equilibrado y con ortografía perfecta',
-    badgeColor: '#3b82f6',
+    badgeColor: '#52525b',
   },
   formal: {
     id: 'formal',
     label: 'Formal',
     description: 'Profesional, académico y sintaxis elegante',
-    badgeColor: '#8b5cf6',
+    badgeColor: '#3f3f46',
   },
   concise: {
     id: 'concise',
     label: 'Conciso',
     description: 'Directo al grano, sin redundancias ni relleno',
-    badgeColor: '#10b981',
+    badgeColor: '#27272a',
   },
   email: {
     id: 'email',
     label: 'Correo',
     description: 'Formato email con asunto, saludo y despedida',
-    badgeColor: '#f59e0b',
+    badgeColor: '#52525b',
   },
   prompt: {
     id: 'prompt',
     label: 'Prompt IA',
     description: 'Ingeniería de prompt optimizado con instrucciones claras',
-    badgeColor: '#ec4899',
+    badgeColor: '#18181b',
   },
 }
 

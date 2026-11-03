@@ -8,8 +8,10 @@ backend/*/*/__pycache__/
 *.pyd
 .pytest_cache/
 *.db
-backend/voiceprompt.db
-backend/*.db
+*.db-shm
+*.db-wal
+backend/voiceprompt.db*
+backend/*.db*
 
 # Node / Frontend
 frontend/node_modules/

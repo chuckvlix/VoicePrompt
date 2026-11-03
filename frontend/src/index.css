@@ -1,34 +1,62 @@
 :root {
-  --bg-app: #0b0f19;
-  --bg-surface: #111827;
-  --bg-surface-elevated: #1f2937;
-  --bg-card: #151d2f;
-  --bg-card-hover: #1c263c;
-  --border-subtle: #243048;
-  --border-focus: #3b82f6;
+  /* Canvas & Surfaces */
+  --bg-canvas: #e8eaee;
+  --bg-shell: rgba(247, 248, 250, 0.78);
+  --bg-card-light: #ffffff;
+  --bg-card-subtle: #f3f4f6;
+  --bg-card-hover: #ebedf0;
+  --bg-card-dark: #0d0d0f;
+  --bg-card-dark-elevated: #1a1a1e;
 
-  --text-primary: #f9fafb;
-  --text-secondary: #9ca3af;
-  --text-muted: #6b7280;
+  /* Legacy & Semantic surface mappings */
+  --bg-app: var(--bg-canvas);
+  --bg-surface: var(--bg-card-light);
+  --bg-surface-elevated: var(--bg-card-subtle);
+  --bg-card: var(--bg-card-light);
 
-  --accent-primary: #3b82f6;
-  --accent-primary-hover: #2563eb;
-  --accent-danger: #ef4444;
-  --accent-danger-hover: #dc2626;
+  /* Typography Colors */
+  --text-primary: #0f0f12;
+  --text-secondary: #52525b;
+  --text-muted: #8e8e93;
+  --text-on-dark: #ffffff;
+  --text-on-dark-muted: #a1a1aa;
+
+  /* Borders & Dividers */
+  --border-glass: rgba(255, 255, 255, 0.85);
+  --border-light: rgba(15, 15, 18, 0.06);
+  --border-dark: rgba(255, 255, 255, 0.1);
+  --border-subtle: rgba(15, 15, 18, 0.08);
+  --border-focus: #0d0d0f;
+
+  /* Semantic Accents */
+  --accent-primary: #0d0d0f;
+  --accent-primary-hover: #27272a;
+  --accent-black: #0d0d0f;
+  --accent-black-hover: #27272a;
+  --accent-record: #e11d48;
+  --accent-danger: #e11d48;
+  --accent-danger-hover: #be123c;
   --accent-success: #10b981;
   --accent-warning: #f59e0b;
 
-  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
+  /* Radii */
+  --radius-sm: 12px;
+  --radius-md: 18px;
+  --radius-lg: 28px;
+  --radius-xl: 36px;
   --radius-full: 9999px;
 
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.5);
+  /* Soft Diffused Shadows */
+  --shadow-sm: 0 2px 8px rgba(15, 15, 20, 0.04);
+  --shadow-md: 0 8px 24px rgba(15, 15, 20, 0.06);
+  --shadow-lg: 0 20px 48px rgba(15, 15, 20, 0.1);
+  --shadow-shell: 0 24px 60px rgba(15, 15, 20, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  --shadow-card: 0 12px 32px rgba(15, 15, 20, 0.04), 0 2px 6px rgba(15, 15, 20, 0.02);
+  --shadow-card-dark: 0 20px 40px rgba(0, 0, 0, 0.18);
+  --shadow-pill: 0 4px 14px rgba(15, 15, 20, 0.05);
 
-  color-scheme: dark;
+  --font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+  color-scheme: light;
 }
 
 * {
@@ -39,7 +67,12 @@
 
 body {
   font-family: var(--font-family);
-  background-color: var(--bg-app);
+  background-color: var(--bg-canvas);
+  background-image:
+    radial-gradient(at 10% 8%, rgba(255, 255, 255, 0.75) 0px, transparent 45%),
+    radial-gradient(at 92% 92%, rgba(206, 212, 222, 0.5) 0px, transparent 50%),
+    radial-gradient(at 50% 50%, rgba(240, 242, 246, 0.4) 0px, transparent 60%);
+  background-attachment: fixed;
   color: var(--text-primary);
   min-height: 100vh;
   line-height: 1.5;
@@ -55,23 +88,25 @@ button {
   color: inherit;
 }
 
-input, textarea, select {
+input,
+textarea,
+select {
   font-family: inherit;
   font-size: inherit;
 }
 
-/* Scrollbar styles */
+/* Light & sleek scrollbar styles */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--bg-surface);
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--border-subtle);
+  background: rgba(15, 15, 20, 0.15);
   border-radius: var(--radius-full);
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--text-muted);
+  background: rgba(15, 15, 20, 0.3);
 }
