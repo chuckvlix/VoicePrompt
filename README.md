@@ -2,165 +2,166 @@
 
 <div align="center">
 
-**Local-First Voice Dictation & AI Text Refinement Engine**
+**Motor Local de Dictado por Voz y Refinamiento de Texto con IA**
 
-*100% private, zero-cloud speech-to-text with faster-whisper and local LLM prompt engineering via LM Studio.*
+*Transcripción de voz a texto 100% privada con faster-whisper e ingeniería de prompts local mediante LM Studio.*
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-black.svg?style=flat-square)](LICENSE)
+[![Licencia: MIT](https://img.shields.io/badge/Licencia-MIT-black.svg?style=flat-square)](LICENSE)
 [![Python 3.12](https://img.shields.io/badge/Python-3.12-3776AB.svg?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688.svg?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![React 19](https://img.shields.io/badge/React-19-61DAFB.svg?style=flat-square&logo=react&logoColor=black)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6.svg?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Bun](https://img.shields.io/badge/Bun-1.4+-fbf0df.svg?style=flat-square&logo=bun&logoColor=black)](https://bun.sh/)
 [![Vite](https://img.shields.io/badge/Vite-6.0+-646CFF.svg?style=flat-square&logo=vite&logoColor=white)](https://vitejs.dev/)
-[![Tests](https://img.shields.io/badge/Tests-35%20Passed-10B981.svg?style=flat-square)](backend/tests)
+[![Pruebas](https://img.shields.io/badge/Pruebas-35%20Aprobadas-10B981.svg?style=flat-square)](backend/tests)
 
 </div>
 
 ---
 
-## Overview
+## Descripción General
 
-**VoicePrompt** is a high-performance, private-by-design productivity workspace. It allows creators, software engineers, and writers to speak freely in Spanish, get real-time local audio transcription via **faster-whisper** (CTranslate2), and instantly polish, restructure, or format their ideas into emails, documents, or structured AI prompts using their local **LM Studio** inference server.
+**VoicePrompt** es un espacio de trabajo productivo diseñado bajo el principio de **privacidad absoluta y ejecución local**. Permite a desarrolladores, creadores y redactores dictar libremente sus ideas en español con su micrófono, obtener una transcripción precisa e instantánea usando **faster-whisper** (CTranslate2), y reestructurar o transformar el texto en correos ejecutivos, documentos o *prompts* técnicos utilizando cualquier modelo de lenguaje grande (LLM) ejecutado en local a través de **LM Studio**.
 
-No telemetry. No cloud API costs. No data leaves your machine.
+Sin telemetría. Sin costos de APIs en la nube. Ningún dato sale de tu ordenador.
 
 ---
 
-## Architecture & Engineering Highlights
+## Arquitectura y Decisiones de Ingeniería
 
 ```mermaid
 flowchart LR
-    subgraph Browser ["Client: React 19 + TypeScript (Bun / Vite)"]
-        Mic["MediaRecorder API\n(Safari MP4 / WebM / WAV)"] --> AudioState["useAudioRecorder Hook"]
-        AudioState --> DualEditor["Dual-Stage Twin Editors\n(Draft & Refined Output)"]
-        DualEditor --> HistoryDialog["Native <dialog>\nAccessible Modal"]
+    subgraph Browser ["Cliente: React 19 + TypeScript (Bun / Vite)"]
+        Mic["API MediaRecorder\n(Safari MP4 / WebM / WAV)"] --> AudioState["Hook useAudioRecorder"]
+        AudioState --> DualEditor["Editores Gemelos Simétricos\n(Borrador y Salida Pulida)"]
+        DualEditor --> HistoryDialog["Modal Accesible <dialog>\nNativo del Navegador"]
     end
 
     subgraph Server ["Backend: FastAPI (Python 3.12)"]
         API_STT["POST /api/transcribe\n(asyncio.to_thread)"]
-        API_LLM["POST /api/improve\n(Dynamic Model Discovery)"]
+        API_LLM["POST /api/improve\n(Detección Dinámica de Modelo)"]
         API_DB["CRUD /api/history"]
 
         WhisperEngine["faster-whisper (CTranslate2)\nSilero VAD + lang='es'"]
-        LMStudioClient["httpx Async Client\n<think> Tag Sanitizer"]
-        DBEngine[("SQLite (WAL Mode)\nISO-8601 UTC Timestamps")]
+        LMStudioClient["Cliente Asíncrono httpx\nSanitizador de trazas <think>"]
+        DBEngine[("SQLite (Modo WAL)\nMarcas de tiempo ISO-8601 UTC")]
 
         API_STT --> WhisperEngine
         API_LLM --> LMStudioClient
         API_DB --> DBEngine
     end
 
-    subgraph LocalAI ["Local Inference"]
-        LMStudio["LM Studio Server\nhttp://localhost:1234/v1"]
+    subgraph LocalAI ["Inferencia Local"]
+        LMStudio["Servidor Local LM Studio\nhttp://localhost:1234/v1"]
     end
 
-    Mic -->|Audio Blob| API_STT
-    DualEditor -->|Text + Tone| API_LLM
-    DualEditor -->|Explicit Save| API_DB
-    LMStudioClient <-->|OpenAI-Compatible REST| LMStudio
+    Mic -->|Blob de Audio| API_STT
+    DualEditor -->|Texto + Tono Seleccionado| API_LLM
+    DualEditor -->|Guardado Bajo Demanda| API_DB
+    LMStudioClient <-->|REST compatible con OpenAI| LMStudio
 ```
 
-### Key Technical Decisions
+### Decisiones Técnicas Clave
 
-- **Event Loop Concurrency**: Whisper C++ inference is CPU-bound. Instead of blocking FastAPI's async event loop, transcription runs inside a worker thread pool via `await asyncio.to_thread()`, keeping health checks and concurrent HTTP requests responsive under load.
-- **Cross-Browser Audio Demuxing**: Accommodates Safari's non-standard `audio/mp4;codecs=mp4a.40.2` output and Chrome's `audio/webm` via MIME-type container sanitization, avoiding PyAV Matroska demuxing errors.
-- **Dynamic Reasoning LLM Sanitization**: Automatically strips `<think>...</think>` traces from modern reasoning models (DeepSeek-R1, QwQ, etc.) and auto-detects currently loaded models via `GET /v1/models`.
-- **Zero-Accidental History Bloat**: Drafts remain completely in-memory during editing; data is committed to the local SQLite database only upon explicit user action (*Guardar en historial*).
-- **SQLite Write-Ahead Logging (WAL)**: Configured with `PRAGMA journal_mode = WAL` and `PRAGMA synchronous = NORMAL` for resilient local read/write concurrency.
-- **Monochrome Soft-UI Design System**: Geometric typography (**Plus Jakarta Sans**), floating pearl-gray canvas (`#E8EAEE`), pill-shaped control surfaces, and twin white editor cards engineered for minimal cognitive load and zero eye fatigue.
-- **Web Platform Standards**: Uses native HTML5 `<dialog>` with `.showModal()`, `overscroll-behavior: contain`, and coordinate-validated backdrop dismissal.
+- **Concurrencia sin bloqueo del Event Loop**: La inferencia en C++ de Whisper consume intensamente CPU. En lugar de bloquear el bucle de eventos asíncrono de FastAPI, el procesamiento de audio se delega a un hilo de ejecución independiente con `await asyncio.to_thread()`, manteniendo las comprobaciones de salud (*health checks*) y peticiones concurrentes 100% fluidas.
+- **Demuxing robusto multi-navegador**: Se gestionan las peculiaridades de Safari (que graba en `audio/mp4;codecs=mp4a.40.2`) frente a Chromium (`audio/webm`), normalizando la extensión del contenedor temporal antes de enviarlo a PyAV para evitar fallos de demuxing en tiempo de ejecución.
+- **Sanitización de Modelos de Razonamiento**: Para modelos como DeepSeek-R1 o QwQ, el cliente backend detecta y remueve automáticamente los bloques internos de pensamiento (`<think>...</think>`), entregando al usuario únicamente el texto final refinado.
+- **Autodescubrimiento de Modelo**: Consulta dinámicamente `/v1/models` en LM Studio para vincularse al modelo actualmente cargado en memoria, eliminando la necesidad de reconfigurar archivos `.env` al cambiar de LLM.
+- **Persistencia Responsable (Cero Basura en Base de Datos)**: Los borradores permanecen en la memoria del cliente mientras se editan; la base de datos SQLite solo almacena un registro cuando el usuario hace clic expresamente en *Guardar en historial*.
+- **SQLite en Modo WAL**: Configurado con `PRAGMA journal_mode = WAL` y `PRAGMA synchronous = NORMAL`, lo que asegura lecturas y escrituras concurrentes de alta velocidad sin bloqueos de archivo.
+- **Sistema de Diseño Soft-UI Monocromático**: Tipografía geométrica (**Plus Jakarta Sans**), lienzo gris perla (`#E8EAEE`), componentes en cápsula (*pills*) y dos tarjetas gemelas blancas que eliminan la fatiga visual al comparar textos.
+- **Estándares Web Nativos**: Empleo del elemento `<dialog>` con `.showModal()`, `overscroll-behavior: contain` para prevenir el scroll del fondo, y validación de coordenadas para descarte al hacer clic en el backdrop.
 
 ---
 
-## Tech Stack
+## Stack Tecnológico
 
-| Domain | Technology | Purpose |
+| Área | Tecnología | Justificación Técnica |
 |---|---|---|
-| **Speech-to-Text** | `faster-whisper` (CTranslate2) | 4x faster Whisper execution, Silero VAD, int8 quantization |
-| **Local LLM Engine** | LM Studio (OpenAI-compatible API) | Local inference for Llama 3, Qwen 2.5, DeepSeek, Mistral, Gemma |
-| **Backend Runtime** | Python 3.12 managed via `uv` | Deterministic dependency pinning and sub-second virtual environments |
-| **Backend Framework** | FastAPI + Pydantic v2 | High-throughput asynchronous REST API contracts |
-| **Persistence** | SQLite (`sqlite3` standard library) | Zero-dependency local persistence with WAL mode |
-| **Frontend Framework** | React 19 + TypeScript | Declarative UI state with strict typing |
-| **Frontend Tooling** | Bun + Vite | Sub-100ms TypeScript compilation and HMR |
-| **Design & Icons** | Vanilla CSS Tokens + Lucide Icons | Accessible, high-contrast monochrome Soft-UI |
-| **Code Quality** | Pytest, Bun Test, Oxlint | 35 automated tests covering API contracts, audio formats, and UI logic |
+| **Voz a Texto (STT)** | `faster-whisper` (CTranslate2) | 4x más rápido que Whisper original, filtro VAD Silero y cuantización int8 |
+| **Motor LLM Local** | LM Studio (API compatible con OpenAI) | Inferencia local sin costes para Llama 3, Qwen 2.5, DeepSeek, Mistral, Gemma |
+| **Entorno Backend** | Python 3.12 gestionado con `uv` | Entornos virtuales en milisegundos y dependencias binarias precompiladas |
+| **Framework Backend** | FastAPI + Pydantic v2 | Validación estricta de esquemas y endpoints asíncronos de alto rendimiento |
+| **Base de Datos** | SQLite (`sqlite3` estándar) | Cero configuración externa, portabilidad total y modo WAL activado |
+| **Framework Frontend** | React 19 + TypeScript | Tipado estricto extremo a extremo y gestión de estado declarativa |
+| **Herramientas Frontend** | Bun + Vite | Compilación de TypeScript y Hot Module Replacement en menos de 100 ms |
+| **Diseño e Iconografía** | Tokens CSS nativos + Lucide Icons | Estética Soft-UI moderna, ligera, sin dependencias pesadas de estilos |
+| **Calidad y Pruebas** | Pytest, Bun Test, Oxlint | 35 pruebas automatizadas entre endpoints, codecs de audio y lógica cliente |
 
 ---
 
-## Supported Tone Profiles
+## Perfiles de Tono Soportados
 
-VoicePrompt provides 5 tone transformation engines tailored for productivity:
+VoicePrompt incluye 5 modos de transformación configurados con prompts de sistema optimizados:
 
-1. **Estándar (`neutral`)**: Natural, balanced, with flawless punctuation and grammar.
-2. **Formal (`formal`)**: Academic and executive phrasing with elegant syntax.
-3. **Conciso (`concise`)**: Direct to the point, eliminating fluff and redundancies.
-4. **Correo (`email`)**: Structured email format complete with Subject line, greeting, body, and closing.
-5. **Prompt IA (`prompt`)**: Meta-prompt engineering specifying role, context, goal, and constraints.
+1. **Estándar (`neutral`)**: Redacción natural, fluida, con ortografía y puntuación impecables.
+2. **Formal (`formal`)**: Registro ejecutivo y académico, con vocabulario preciso y sintaxis elegante.
+3. **Conciso (`concise`)**: Mensaje directo al grano, eliminando muletillas, relleno y redundancias.
+4. **Correo (`email`)**: Estructura lista para enviar, con asunto sugerido, saludo cordial, cuerpo y despedida profesional.
+5. **Prompt IA (`prompt`)**: Meta-ingeniería de instrucciones, estructurando la idea en rol, contexto, tarea y restricciones.
 
 ---
 
-## Getting Started
+## Puesta en Marcha Local
 
-### Prerequisites
+### Prerrequisitos
 
 - [Bun](https://bun.sh/) (`curl -fsSL https://bun.sh/install | bash`)
 - [uv](https://docs.astral.sh/uv/) (`curl -LsSf https://astral.sh/uv/install.sh | sh`)
-- [LM Studio](https://lmstudio.ai/) with your preferred model downloaded
+- [LM Studio](https://lmstudio.ai/) con cualquier modelo descargado
 
-### 1. Start LM Studio Local Server
-1. Launch **LM Studio**.
-2. Load any model (e.g. `llama-3.2-3b-instruct`, `qwen2.5-7b-instruct`).
-3. Under the **Developer / Local Server** tab, click **Start Server** on port `1234`.
+### 1. Iniciar el Servidor de LM Studio
+1. Abre **LM Studio**.
+2. Carga un modelo en memoria (ejemplo: `llama-3.2-3b-instruct` o `qwen2.5-7b-instruct`).
+3. En la pestaña **Developer / Local Server**, haz clic en **Start Server** en el puerto `1234`.
 
-### 2. Backend Setup
+### 2. Configurar el Backend
 ```bash
 cd backend
 
-# Create virtualenv and install dependencies via uv
+# Sincronizar dependencias con uv
 uv sync
 
-# Run automated tests
+# Ejecutar la suite de pruebas
 uv run pytest
 
-# Start development server
+# Iniciar el servidor de desarrollo
 uv run uvicorn app.main:app --reload --port 8000
 ```
-Backend API will be live at `http://localhost:8000` (interactive OpenAPI documentation at `http://localhost:8000/docs`).
+La API estará disponible en `http://localhost:8000` (documentación interactiva en `http://localhost:8000/docs`).
 
-### 3. Frontend Setup
+### 3. Configurar el Frontend
 ```bash
 cd frontend
 
-# Install dependencies via Bun
+# Instalar dependencias con Bun
 bun install
 
-# Run unit tests and linter
+# Ejecutar pruebas unitarias y análisis estático
 bun test
 bun run lint
 
-# Start Vite dev server
+# Iniciar servidor de desarrollo con Vite
 bun run dev
 ```
-Open your browser at `http://localhost:5173`.
+Abre tu navegador en `http://localhost:5173`.
 
 ---
 
-## Automated Verification & Testing
+## Verificación y Calidad de Código
 
-The project maintains 100% passing automated test coverage across both layers:
+El repositorio cuenta con una cobertura completa de pruebas automatizadas:
 
 ```bash
-# Backend pytest suite (23 tests)
+# Pruebas del Backend con pytest (23 pruebas)
 cd backend && uv run pytest -v
 
-# Frontend bun test suite (12 tests) + production build
+# Pruebas del Frontend con Bun Test (12 pruebas) y compilación de producción
 cd frontend && bun test && bun run build
 ```
 
 ---
 
-## License
+## Licencia
 
-This project is licensed under the [MIT License](LICENSE) - feel free to use, modify, and distribute for personal or commercial projects.
+Este proyecto está bajo la [Licencia MIT](LICENSE) — eres libre de utilizarlo, modificarlo y distribuirlo para fines personales o comerciales.
