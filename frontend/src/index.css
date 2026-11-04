@@ -1,12 +1,22 @@
 :root {
+  /* color-scheme reflects the <meta> override */
+  color-scheme: light dark;
+
+  &:has(> head > meta[name="color-scheme"][content="dark"]) {
+    color-scheme: dark;
+  }
+  &:has(> head > meta[name="color-scheme"][content="light"]) {
+    color-scheme: light;
+  }
+
   /* Canvas & Surfaces */
-  --bg-canvas: #e8eaee;
-  --bg-shell: rgba(247, 248, 250, 0.78);
-  --bg-card-light: #ffffff;
-  --bg-card-subtle: #f3f4f6;
-  --bg-card-hover: #ebedf0;
-  --bg-card-dark: #0d0d0f;
-  --bg-card-dark-elevated: #1a1a1e;
+  --bg-canvas: light-dark(#e8eaee, #0b0d12);
+  --bg-shell: light-dark(rgba(247, 248, 250, 0.78), rgba(18, 21, 28, 0.78));
+  --bg-card-light: light-dark(#ffffff, #131722);
+  --bg-card-subtle: light-dark(#f3f4f6, #1a202c);
+  --bg-card-hover: light-dark(#ebedf0, #222a3a);
+  --bg-card-dark: light-dark(#0d0d0f, #ffffff);
+  --bg-card-dark-elevated: light-dark(#1a1a1e, #f3f4f6);
 
   /* Legacy & Semantic surface mappings */
   --bg-app: var(--bg-canvas);
@@ -15,22 +25,32 @@
   --bg-card: var(--bg-card-light);
 
   /* Typography Colors */
-  --text-primary: #0f0f12;
-  --text-secondary: #52525b;
-  --text-muted: #8e8e93;
-  --text-on-dark: #ffffff;
-  --text-on-dark-muted: #a1a1aa;
+  --text-primary: light-dark(#0f0f12, #f3f4f6);
+  --text-secondary: light-dark(#52525b, #9ca3af);
+  --text-muted: light-dark(#8e8e93, #6b7280);
+  --text-on-dark: light-dark(#ffffff, #0d0d0f);
+  --text-on-dark-muted: light-dark(#a1a1aa, #52525b);
 
   /* Borders & Dividers */
-  --border-glass: rgba(255, 255, 255, 0.85);
-  --border-light: rgba(15, 15, 18, 0.06);
+  --border-glass: light-dark(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.08));
+  --border-light: light-dark(rgba(15, 15, 18, 0.06), rgba(255, 255, 255, 0.08));
   --border-dark: rgba(255, 255, 255, 0.1);
-  --border-subtle: rgba(15, 15, 18, 0.08);
-  --border-focus: #0d0d0f;
+  --border-subtle: light-dark(rgba(15, 15, 18, 0.08), rgba(255, 255, 255, 0.08));
+  --border-focus: light-dark(#0d0d0f, #3b82f6);
+
+  /* Interactive Elements */
+  --btn-primary-bg: light-dark(#0d0d0f, #f3f4f6);
+  --btn-primary-text: light-dark(#ffffff, #0d0d0f);
+  --btn-primary-hover: light-dark(#27272a, #ffffff);
+  --btn-icon-subtle-bg: light-dark(rgba(255, 255, 255, 0.18), rgba(13, 13, 15, 0.12));
+
+  /* Tone Pills */
+  --tone-active-bg: light-dark(#0d0d0f, #f3f4f6);
+  --tone-active-text: light-dark(#ffffff, #0d0d0f);
 
   /* Semantic Accents */
-  --accent-primary: #0d0d0f;
-  --accent-primary-hover: #27272a;
+  --accent-primary: light-dark(#0d0d0f, #f3f4f6);
+  --accent-primary-hover: light-dark(#27272a, #ffffff);
   --accent-black: #0d0d0f;
   --accent-black-hover: #27272a;
   --accent-record: #e11d48;
@@ -47,16 +67,21 @@
   --radius-full: 9999px;
 
   /* Soft Diffused Shadows */
-  --shadow-sm: 0 2px 8px rgba(15, 15, 20, 0.04);
-  --shadow-md: 0 8px 24px rgba(15, 15, 20, 0.06);
-  --shadow-lg: 0 20px 48px rgba(15, 15, 20, 0.1);
-  --shadow-shell: 0 24px 60px rgba(15, 15, 20, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9);
-  --shadow-card: 0 12px 32px rgba(15, 15, 20, 0.04), 0 2px 6px rgba(15, 15, 20, 0.02);
-  --shadow-card-dark: 0 20px 40px rgba(0, 0, 0, 0.18);
-  --shadow-pill: 0 4px 14px rgba(15, 15, 20, 0.05);
+  --shadow-sm: light-dark(0 2px 8px rgba(15, 15, 20, 0.04), 0 2px 8px rgba(0, 0, 0, 0.3));
+  --shadow-md: light-dark(0 8px 24px rgba(15, 15, 20, 0.06), 0 8px 24px rgba(0, 0, 0, 0.4));
+  --shadow-lg: light-dark(0 20px 48px rgba(15, 15, 20, 0.1), 0 20px 48px rgba(0, 0, 0, 0.5));
+  --shadow-shell: light-dark(
+    0 24px 60px rgba(15, 15, 20, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 24px 60px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05)
+  );
+  --shadow-card: light-dark(
+    0 12px 32px rgba(15, 15, 20, 0.04), 0 2px 6px rgba(15, 15, 20, 0.02),
+    0 12px 32px rgba(0, 0, 0, 0.25), 0 2px 6px rgba(0, 0, 0, 0.2)
+  );
+  --shadow-card-dark: 0 20px 40px rgba(0, 0, 0, 0.3);
+  --shadow-pill: light-dark(0 4px 14px rgba(15, 15, 20, 0.05), 0 4px 14px rgba(0, 0, 0, 0.3));
 
   --font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
-  color-scheme: light;
 }
 
 * {
@@ -69,9 +94,9 @@ body {
   font-family: var(--font-family);
   background-color: var(--bg-canvas);
   background-image:
-    radial-gradient(at 10% 8%, rgba(255, 255, 255, 0.75) 0px, transparent 45%),
-    radial-gradient(at 92% 92%, rgba(206, 212, 222, 0.5) 0px, transparent 50%),
-    radial-gradient(at 50% 50%, rgba(240, 242, 246, 0.4) 0px, transparent 60%);
+    radial-gradient(at 10% 8%, light-dark(rgba(255, 255, 255, 0.75), rgba(30, 41, 59, 0.35)) 0px, transparent 45%),
+    radial-gradient(at 92% 92%, light-dark(rgba(206, 212, 222, 0.5), rgba(15, 23, 42, 0.5)) 0px, transparent 50%),
+    radial-gradient(at 50% 50%, light-dark(rgba(240, 242, 246, 0.4), rgba(24, 30, 42, 0.4)) 0px, transparent 60%);
   background-attachment: fixed;
   color: var(--text-primary);
   min-height: 100vh;
@@ -104,9 +129,9 @@ select {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(15, 15, 20, 0.15);
+  background: light-dark(rgba(15, 15, 20, 0.15), rgba(255, 255, 255, 0.15));
   border-radius: var(--radius-full);
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(15, 15, 20, 0.3);
+  background: light-dark(rgba(15, 15, 20, 0.3), rgba(255, 255, 255, 0.3));
 }

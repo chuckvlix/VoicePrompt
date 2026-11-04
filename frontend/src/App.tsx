@@ -15,7 +15,7 @@ import {
   transcribeAudio,
 } from './services/api'
 import type { HistoryItem, ToneOption } from './types'
-import { History, Mic, Sparkles } from 'lucide-react'
+import { History, Mic, Moon, Sparkles, Sun } from 'lucide-react'
 import { copyToClipboard } from './utils/clipboard'
 import './App.css'
 
@@ -33,6 +33,64 @@ export function App() {
   const [historyItems, setHistoryItems] = useState<HistoryItem[]>([])
   const [isHistoryOpen, setIsHistoryOpen] = useState(false)
   const [isBackendHealthy, setIsBackendHealthy] = useState<boolean | null>(null)
+
+  const [isDark, setIsDark] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false
+    const meta = document.querySelector('meta[name="color-scheme"]')
+    const content = meta?.getAttribute('content')
+    if (content === 'dark') return true
+    if (content === 'light') return false
+    return window.matchMedia('(prefers-color-scheme: dark)').matches
+  })
+
+  // Sync color-scheme changes across tabs and system preferences
+  useEffect(() => {
+    const meta = document.querySelector('meta[name="color-scheme"]')
+    const mql = window.matchMedia('(prefers-color-scheme: dark)')
+
+    const handleMediaChange = (e: MediaQueryListEvent) => {
+      const stored = localStorage.getItem('color-scheme')
+      if (!stored || stored === 'light dark') {
+        setIsDark(e.matches)
+      }
+    }
+    mql.addEventListener('change', handleMediaChange)
+
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'color-scheme') {
+        const scheme = e.newValue
+        if (scheme === 'dark') {
+          setIsDark(true)
+          if (meta) meta.setAttribute('content', 'dark')
+        } else if (scheme === 'light') {
+          setIsDark(false)
+          if (meta) meta.setAttribute('content', 'light')
+        } else {
+          setIsDark(mql.matches)
+          if (meta) meta.setAttribute('content', 'light dark')
+        }
+      }
+    }
+    window.addEventListener('storage', handleStorageChange)
+
+    return () => {
+      mql.removeEventListener('change', handleMediaChange)
+      window.removeEventListener('storage', handleStorageChange)
+    }
+  }, [])
+
+  const toggleTheme = useCallback(() => {
+    setIsDark((prev) => {
+      const next = !prev
+      const nextScheme = next ? 'dark' : 'light'
+      const meta = document.querySelector('meta[name="color-scheme"]')
+      if (meta) meta.setAttribute('content', nextScheme)
+      try {
+        localStorage.setItem('color-scheme', nextScheme)
+      } catch {}
+      return next
+    })
+  }, [])
 
   const [toasts, setToasts] = useState<ToastMessage[]>([])
 
@@ -189,6 +247,16 @@ export function App() {
               <span>{isBackendHealthy ? 'Servidor activo' : 'Servidor desconectado'}</span>
             </div>
           )}
+
+          <button
+            type="button"
+            className="theme-toggle-btn"
+            onClick={toggleTheme}
+            aria-label={isDark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+            title={isDark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+          >
+            {isDark ? <Sun size={17} aria-hidden="true" /> : <Moon size={17} aria-hidden="true" />}
+          </button>
 
           <button
             type="button"
