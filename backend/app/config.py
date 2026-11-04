@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     whisper_language: str = "es"
     lm_studio_base_url: str = "http://localhost:1234/v1"
     lm_studio_model: str = "local-model"
+    lm_studio_timeout: float = 120.0
     sqlite_db_path: str = "voiceprompt.db"
     cors_origins: list[str] = [
         "http://localhost:5173",

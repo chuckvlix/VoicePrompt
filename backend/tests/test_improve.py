@@ -152,3 +152,44 @@ def test_improve_validation_errors(client: TestClient):
     # Invalid tone
     res = client.post("/api/improve", json={"text": "hola", "tone": "invalid"})
     assert res.status_code == 422
+
+
+def test_improve_reasoning_model_prefill(client: TestClient):
+    with (
+        patch("app.services.llm.LLMService.get_active_model", new_callable=AsyncMock) as mock_model,
+        patch("httpx.AsyncClient.post", new_callable=AsyncMock) as mock_post,
+    ):
+        mock_model.return_value = "qwen/qwen3.5-9b"
+        mock_response = AsyncMock()
+        mock_response.status_code = 200
+        mock_response.json = lambda: {
+            "choices": [{"message": {"role": "assistant", "content": "Texto refinado rápidamente"}}]
+        }
+        mock_response.raise_for_status = lambda: None
+        mock_post.return_value = mock_response
+
+        res = client.post("/api/improve", json={"text": "hola mundo", "tone": "neutral"})
+        assert res.status_code == 200
+        assert res.json()["improved_text"] == "Texto refinado rápidamente"
+
+        # Verify assistant prefill was added for qwen3.5
+        call_kwargs = mock_post.call_args.kwargs
+        messages = call_kwargs["json"]["messages"]
+        assert len(messages) == 3
+        assert messages[2]["role"] == "assistant"
+        assert "<think>" in messages[2]["content"]
+
+
+def test_improve_reasoning_content_fallback(client: TestClient):
+    with patch("httpx.AsyncClient.post", new_callable=AsyncMock) as mock_post:
+        mock_response = AsyncMock()
+        mock_response.status_code = 200
+        mock_response.json = lambda: {
+            "choices": [{"message": {"role": "assistant", "content": "", "reasoning_content": "Texto alternativo desde reasoning"}}]
+        }
+        mock_response.raise_for_status = lambda: None
+        mock_post.return_value = mock_response
+
+        res = client.post("/api/improve", json={"text": "hola mundo", "tone": "neutral"})
+        assert res.status_code == 200
+        assert res.json()["improved_text"] == "Texto alternativo desde reasoning"

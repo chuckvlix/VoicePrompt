@@ -99,16 +99,29 @@ class LLMService:
         system_content = self.build_system_prompt(tone)
 
         try:
-            async with httpx.AsyncClient(timeout=60.0) as client:
+            async with httpx.AsyncClient(timeout=settings.lm_studio_timeout) as client:
                 model_to_use = await self.get_active_model(client)
+
+                is_reasoning_model = any(
+                    tag in model_to_use.lower()
+                    for tag in ["qwen3", "qwen-3", "qwq", "r1", "deepseek-r1", "reasoning", "thinking"]
+                )
+
+                messages: list[dict[str, str]] = [
+                    {"role": "system", "content": system_content},
+                    {"role": "user", "content": text},
+                ]
+
+                # For reasoning models (e.g. Qwen 3.5, QwQ, DeepSeek-R1), prefill thinking closure
+                # to prevent 60-120s reasoning loops on local hardware
+                if is_reasoning_model:
+                    messages.append({"role": "assistant", "content": "<think>\n</think>"})
 
                 payload = {
                     "model": model_to_use,
-                    "messages": [
-                        {"role": "system", "content": system_content},
-                        {"role": "user", "content": text},
-                    ],
+                    "messages": messages,
                     "temperature": 0.3,
+                    "max_tokens": 1500,
                     "stream": False,
                 }
 
@@ -123,7 +136,11 @@ class LLMService:
                     detail="LM Studio no devolvió ninguna opción de respuesta válida.",
                 )
 
-            raw_text = choices[0].get("message", {}).get("content", "").strip()
+            message_obj = choices[0].get("message", {})
+            raw_text = message_obj.get("content", "").strip()
+            if not raw_text and message_obj.get("reasoning_content"):
+                raw_text = message_obj.get("reasoning_content", "").strip()
+
             improved_text = clean_llm_response(raw_text)
 
             if not improved_text:
