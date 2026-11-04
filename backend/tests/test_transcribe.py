@@ -79,3 +79,17 @@ def test_transcribe_thread_offload(client: TestClient):
         assert res.status_code == 200
         assert res.json()["text"] == "Texto transcrito vía hilo"
         mock_to_thread.assert_called_once()
+
+
+def test_pyav_metadata_errors_patch():
+    import av
+    import pytest
+
+    # Calling av.open with metadata_errors="ignore" must not raise a TypeError
+    try:
+        av.open(io.BytesIO(b""), mode="r", metadata_errors="ignore")
+    except TypeError as e:
+        pytest.fail(f"av.open raised TypeError with metadata_errors: {e}")
+    except Exception:
+        # Any other audio error (like InvalidDataError on empty buffer) is expected and acceptable
+        pass

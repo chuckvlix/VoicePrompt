@@ -1,9 +1,22 @@
 import logging
 from pathlib import Path
 from typing import Any
+import av
 from app.config import settings
 
 logger = logging.getLogger(__name__)
+
+# Compatibility patch for PyAV >= 18:
+# faster-whisper passes metadata_errors="ignore" to av.open(), which was removed in PyAV 18+.
+_original_av_open = av.open
+
+
+def _safe_av_open(*args: Any, **kwargs: Any) -> Any:
+    kwargs.pop("metadata_errors", None)
+    return _original_av_open(*args, **kwargs)
+
+
+av.open = _safe_av_open
 
 
 class TranscriptionService:
