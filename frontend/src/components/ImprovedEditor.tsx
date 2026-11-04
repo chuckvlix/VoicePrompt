@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Bookmark, Check, Copy, Sparkles } from 'lucide-react'
+import { Bookmark, Check, Copy, Sparkles, Trash2 } from 'lucide-react'
 import type { ToneOption } from '../types'
 import { TONE_DEFINITIONS } from '../types'
 import { copyToClipboard } from '../utils/clipboard'
@@ -44,6 +44,10 @@ export const ImprovedEditor: React.FC<ImprovedEditorProps> = ({
     }
   }
 
+  const handleClear = () => {
+    onChangeText('')
+  }
+
   const toneDef = appliedTone ? TONE_DEFINITIONS[appliedTone] : null
   const wordCount = improvedText.trim() ? improvedText.trim().split(/\s+/).length : 0
   const charCount = improvedText.length
@@ -71,7 +75,7 @@ export const ImprovedEditor: React.FC<ImprovedEditorProps> = ({
             type="button"
             className="btn-icon"
             onClick={handleCopy}
-            disabled={!improvedText}
+            disabled={!improvedText || isImproving}
             title="Copiar texto mejorado"
             aria-label="Copiar texto mejorado"
           >
@@ -81,6 +85,17 @@ export const ImprovedEditor: React.FC<ImprovedEditorProps> = ({
               <Copy size={16} aria-hidden="true" />
             )}
             <span className="btn-icon-label">{copied ? 'Copiado' : 'Copiar'}</span>
+          </button>
+          <button
+            type="button"
+            className="btn-icon"
+            onClick={handleClear}
+            disabled={!improvedText || isImproving}
+            title="Limpiar texto mejorado"
+            aria-label="Limpiar texto mejorado"
+          >
+            <Trash2 size={16} aria-hidden="true" />
+            <span className="btn-icon-label">Limpiar</span>
           </button>
         </div>
       </div>
